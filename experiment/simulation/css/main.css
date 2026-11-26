@@ -1,1 +1,458 @@
-/* You CSS goes in here */
+/* =============================================================
+   Virtual Lab – Lightning Arrester Characteristics & Residual Voltage
+   Dark High-Voltage Lab Theme  |  Saurabh Bedi, REC Banda
+   ============================================================= */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #060810;
+  --panel:    #0b0f1a;
+  --card:     #0e1522;
+  --border:   #18293f;
+  --cyan:     #00d4ff;
+  --green:    #00ff99;
+  --orange:   #ff8c00;
+  --red:      #ff2244;
+  --yellow:   #ffe066;
+  --text:     #c8dde8;
+  --muted:    #445f78;
+  --header-h: 50px;
+}
+
+html, body {
+  height: 100%; width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+/* ========== HEADER ========== */
+.lab-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  height: var(--header-h);
+  background: linear-gradient(90deg, #060c18, #0a1a2c);
+  border-bottom: 2px solid var(--cyan);
+  box-shadow: 0 3px 28px rgba(0,212,255,.22);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.hdr-logo {
+  font-size: 28px;
+  color: var(--cyan);
+  text-shadow: 0 0 14px var(--cyan);
+  animation: flicker 4s infinite;
+}
+
+@keyframes flicker {
+  0%,96%,100% { opacity: 1; }
+  97%          { opacity: .6; }
+  98%          { opacity: 1; }
+  99%          { opacity: .7; }
+}
+
+.hdr-text h1 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.hdr-text p {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: .5px;
+  margin-top: 1px;
+}
+
+.hdr-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-shadow: 0 0 8px var(--cyan);
+  box-shadow: 0 0 10px rgba(0,212,255,.2);
+  white-space: nowrap;
+}
+
+/* ========== LAYOUT ========== */
+.lab-wrap {
+  display: flex;
+  height: calc(100vh - var(--header-h));
+}
+
+/* ========== 3-D SCENE COL ========== */
+.scene-col {
+  flex: 1;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+
+#labCanvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+}
+
+#labCanvas:active { cursor: grabbing; }
+
+.cam-tip {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: rgba(90,150,190,.55);
+  pointer-events: none;
+  letter-spacing: .4px;
+  white-space: nowrap;
+}
+
+/* ========== DIGITAL DISPLAY (canvas overlay) ========== */
+.digi-panel {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(3,8,20,.92);
+  border: 1.5px solid var(--cyan);
+  border-radius: 10px;
+  padding: 10px 20px 12px;
+  min-width: 500px;
+  box-shadow:
+    0 0 36px rgba(0,212,255,.3),
+    inset 0 0 20px rgba(0,212,255,.04);
+  backdrop-filter: blur(6px);
+}
+
+.digi-title {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: var(--cyan);
+  text-shadow: 0 0 8px var(--cyan);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.digi-row {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 14px;
+}
+
+.digi-cell { text-align: center; }
+
+.digi-lbl {
+  display: block;
+  font-size: 7.5px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.digi-val {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  transition: color .3s, text-shadow .3s;
+}
+
+.digi-ready   { color: var(--green);  text-shadow: 0 0 10px var(--green); }
+.digi-running { color: var(--cyan);   text-shadow: 0 0 12px var(--cyan);  }
+.digi-pass    { color: var(--green);  text-shadow: 0 0 10px var(--green); }
+.digi-fail    { color: var(--red);    text-shadow: 0 0 10px var(--red);   }
+.digi-warn    { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
+
+/* ========== SIDE PANEL ========== */
+.ctrl-col {
+  width: 310px;
+  flex-shrink: 0;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.ctrl-col::-webkit-scrollbar       { width: 4px; }
+.ctrl-col::-webkit-scrollbar-track { background: transparent; }
+.ctrl-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.panel-sec {
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sec-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(0,212,255,.4);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* ---- Fields ---- */
+.field { margin-bottom: 8px; }
+
+.field label {
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 3px;
+}
+
+.field select {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 11px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s, box-shadow .2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23445f78'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.field select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 8px rgba(0,212,255,.2);
+}
+
+/* ---- Status bar ---- */
+.status-bar {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  transition: all .3s;
+}
+
+.sb-ready {
+  background: rgba(0,255,153,.07);
+  color: var(--green);
+  border: 1px solid rgba(0,255,153,.22);
+}
+
+.sb-running {
+  background: rgba(0,212,255,.09);
+  color: var(--cyan);
+  border: 1px solid rgba(0,212,255,.28);
+  animation: pulsebar 1.1s ease-in-out infinite;
+}
+
+@keyframes pulsebar {
+  0%,100% { box-shadow: none; }
+  50%      { box-shadow: 0 0 12px rgba(0,212,255,.4); }
+}
+
+.sb-done {
+  background: rgba(255,140,0,.09);
+  color: var(--orange);
+  border: 1px solid rgba(255,140,0,.28);
+}
+
+/* ---- Buttons ---- */
+.btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.btn {
+  padding: 8px 4px;
+  border: none;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: transform .12s, filter .12s;
+}
+
+.btn:hover:not(:disabled)  { transform: translateY(-2px); filter: brightness(1.18); }
+.btn:active:not(:disabled) { transform: translateY(0);    filter: brightness(.9);   }
+.btn:disabled              { opacity: .38; cursor: not-allowed; }
+
+.btn-run {
+  grid-column: 1 / -1;
+  padding: 11px;
+  font-size: 12px;
+  background: linear-gradient(135deg,#0096c7,#00b4d8);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,180,216,.3);
+}
+
+.btn-add  { background: linear-gradient(135deg,#007a5e,#00b09b); color:#fff; }
+.btn-view { background: linear-gradient(135deg,#4a60b8,#6a5acd); color:#fff; }
+.btn-reset{ background: linear-gradient(135deg,#8a1a2a,#cc2235); color:#fff; }
+
+.btn-print {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg,#b05a00,#e07000);
+  color: #fff;
+}
+
+/* ========== OBSERVATION TABLE ========== */
+.tbl-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+#obsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+#obsTable th {
+  background: rgba(0,212,255,.08);
+  color: var(--cyan);
+  padding: 5px 5px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  font-size: 9px;
+  letter-spacing: .3px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+#obsTable td {
+  padding: 4px 5px;
+  text-align: center;
+  border-bottom: 1px solid rgba(24,41,63,.5);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+#obsTable tr:last-child td { border-bottom: none; }
+#obsTable tbody tr:hover td { background: rgba(0,212,255,.04); }
+
+.no-data td {
+  color: var(--muted);
+  padding: 16px;
+  font-style: italic;
+  text-align: center !important;
+}
+
+.pass { color: var(--green) !important; font-weight: 700; }
+.fail { color: var(--red)   !important; font-weight: 700; }
+
+/* ========== CHART ========== */
+.chart-sec {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 210px;
+}
+
+#viChart {
+  flex: 1;
+  width: 100% !important;
+}
+
+/* ========== PRINT STYLES ========== */
+.print-page { display: none; }
+
+@media print {
+  html, body { overflow: visible; background: #fff; color: #000; height: auto; }
+
+  .scene-col, .cam-tip, .digi-panel, .btn-grid { display: none !important; }
+
+  .lab-wrap  { display: block; }
+
+  .ctrl-col {
+    width: 100%; background: #fff; border: none;
+    overflow: visible; height: auto;
+  }
+
+  .lab-header {
+    background: #fff;
+    border-bottom: 2px solid #333;
+    box-shadow: none;
+    height: auto;
+    padding: 10px 20px;
+  }
+
+  .hdr-logo, .hdr-badge { color: #333; text-shadow: none; border-color: #333; box-shadow: none; }
+  .hdr-text h1 { color: #000; font-size: 15px; }
+  .hdr-text p  { color: #555; }
+
+  .sec-title { color: #333; text-shadow: none; }
+
+  .panel-sec {
+    border-bottom: 1px solid #ddd;
+    page-break-inside: avoid;
+  }
+
+  .field select {
+    background: #fff; color: #000;
+    border: 1px solid #aaa;
+    appearance: auto;
+    background-image: none;
+  }
+
+  .field label { color: #555; }
+  .status-bar  { display: none; }
+
+  #obsTable th { background: #eee; color: #000; border-bottom: 1px solid #ccc; }
+  #obsTable td { color: #000; border-bottom: 1px solid #eee; }
+
+  .pass { color: #006600 !important; }
+  .fail { color: #cc0000 !important; }
+
+  .tbl-wrap { max-height: none; overflow: visible; border: 1px solid #ccc; }
+
+  #viChart { display: block; max-height: 300px; }
+  .chart-sec { display: block; min-height: auto; }
+
+  /* Extra print header */
+  .ctrl-col::before {
+    content: "EXPERIMENT REPORT — Testing Lightning Arrester Characteristics & Residual Voltage";
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    padding: 12px 0 6px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+  }
+}

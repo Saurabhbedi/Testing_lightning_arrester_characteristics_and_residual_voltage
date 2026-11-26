@@ -1,13 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<!-- Add CSS at the head of HTML file -->
-    <link rel="stylesheet" href="./css/main.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Lab – Lightning Arrester Characteristics</title>
+  <link rel="stylesheet" href="./css/main.css" />
 </head>
 <body>
-		<!-- Your code goes here-->
 
-	<!-- Add JS at the bottom of HTML file --> 
-        <script src="./js/main.js"></script>
+<!-- ========= HEADER ========= -->
+<header class="lab-header">
+  <div class="hdr-logo">⚡</div>
+  <div class="hdr-text">
+    <h1>Testing Lightning Arrester Characteristics &amp; Residual Voltage</h1>
+    <p>Electrical Engineering Virtual Laboratory &nbsp;|&nbsp; Rajkiya Engineering College Banda &nbsp;|&nbsp; Developer: Saurabh Bedi</p>
+  </div>
+  <div class="hdr-badge">VIRTUAL LAB</div>
+</header>
+
+<!-- ========= MAIN LAYOUT ========= -->
+<div class="lab-wrap">
+
+  <!-- ── 3-D Scene ── -->
+  <div class="scene-col" id="sceneCol">
+    <canvas id="labCanvas"></canvas>
+
+    <div class="cam-tip">🖱&nbsp;Drag to orbit &nbsp;|&nbsp; Scroll to zoom &nbsp;|&nbsp; Use VIEW button for presets</div>
+
+    <!-- Digital measurement display (overlay on canvas) -->
+    <div class="digi-panel">
+      <div class="digi-title">⬛&nbsp;DIGITAL MEASUREMENT SYSTEM</div>
+      <div class="digi-row">
+        <div class="digi-cell">
+          <span class="digi-lbl">DISCHARGE CURRENT</span>
+          <span class="digi-val digi-ready" id="dI">-- kA</span>
+        </div>
+        <div class="digi-cell">
+          <span class="digi-lbl">RESIDUAL VOLTAGE</span>
+          <span class="digi-val digi-ready" id="dV">-- kV</span>
+        </div>
+        <div class="digi-cell">
+          <span class="digi-lbl">PROTECTION LEVEL (BIL)</span>
+          <span class="digi-val digi-ready" id="dBIL">-- kV</span>
+        </div>
+        <div class="digi-cell">
+          <span class="digi-lbl">TEST STATUS</span>
+          <span class="digi-val digi-ready" id="dStat">READY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Control / Results Panel ── -->
+  <aside class="ctrl-col">
+
+    <!-- Control Panel -->
+    <section class="panel-sec">
+      <div class="sec-title">⚙&nbsp;CONTROL PANEL</div>
+
+      <div class="field">
+        <label>System Voltage</label>
+        <select id="sVolt">
+          <option value="11">11 kV</option>
+          <option value="33" selected>33 kV</option>
+          <option value="66">66 kV</option>
+          <option value="110">110 kV</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Arrester Type</label>
+        <select id="aType" onchange="rebuildArrester()">
+          <option value="porcelain" selected>Porcelain Housing (Class 1)</option>
+          <option value="polymer">Polymer Housing (Class 2)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Nominal Discharge Current</label>
+        <select id="iDisc">
+          <option value="1">1 kA</option>
+          <option value="2.5">2.5 kA</option>
+          <option value="5">5 kA</option>
+          <option value="10" selected>10 kA</option>
+          <option value="20">20 kA</option>
+          <option value="40">40 kA</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Impulse Waveform</label>
+        <select id="iWave">
+          <option value="8/20" selected>8/20 μs (IEC Standard)</option>
+          <option value="4/10">4/10 μs (High Current)</option>
+          <option value="30/60">30/60 μs (Long Duration)</option>
+        </select>
+      </div>
+
+      <div id="statusBar" class="status-bar sb-ready">● READY TO TEST</div>
+
+      <div class="btn-grid">
+        <button class="btn btn-run" id="bRun"  onclick="runTest()">▶ RUN TEST</button>
+        <button class="btn btn-add" id="bAdd"  onclick="addObs()" disabled>➕ ADD</button>
+        <button class="btn btn-view"           onclick="cycleView()">👁 VIEW</button>
+        <button class="btn btn-reset"          onclick="resetAll()">↺ RESET</button>
+        <button class="btn btn-print"          onclick="printReport()">🖨 PRINT REPORT</button>
+      </div>
+    </section>
+
+    <!-- Observation Table -->
+    <section class="panel-sec">
+      <div class="sec-title">📋 OBSERVATION TABLE</div>
+      <div class="tbl-wrap">
+        <table id="obsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Vₛ (kV)</th>
+              <th>I (kA)</th>
+              <th>Vᵣ (kV)</th>
+              <th>BIL (kV)</th>
+              <th>Waveform</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="obsBody">
+            <tr class="no-data"><td colspan="7">No observations yet. Run a test first.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- V-I Characteristic Curve -->
+    <section class="panel-sec chart-sec">
+      <div class="sec-title">📈 V-I CHARACTERISTIC CURVE</div>
+      <canvas id="viChart"></canvas>
+    </section>
+
+  </aside>
+</div>
+
+<!-- Hidden Print Page -->
+<div id="printPage" class="print-page"></div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="./js/main.js"></script>
 </body>
 </html>
